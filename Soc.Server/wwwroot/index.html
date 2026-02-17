@@ -68,9 +68,7 @@ input { width:220px; }
 <h3>Agents <span id="agentCount" class="count"></span></h3>
 <table id="agentsTable">
 <thead>
-<tr>
-<th>AgentId</th><th>Host</th><th>User</th><th>Version</th><th>Registered</th>
-</tr>
+<tr><th>AgentId</th><th>Host</th><th>User</th><th>Version</th><th>Registered</th></tr>
 </thead>
 <tbody></tbody>
 </table>
@@ -80,9 +78,7 @@ input { width:220px; }
 <h3>Recent Telemetry <span id="telemetryCount" class="count"></span></h3>
 <table id="telemetryTable">
 <thead>
-<tr>
-<th>Time</th><th>Agent</th><th>Type</th><th>Severity</th><th>Message</th>
-</tr>
+<tr><th>Time</th><th>Agent</th><th>Type</th><th>Severity</th><th>Message</th></tr>
 </thead>
 <tbody></tbody>
 </table>
@@ -93,14 +89,13 @@ input { width:220px; }
 <h3>🚨 Alerts (High/Critical) <span id="alertCount" class="count"></span></h3>
 <table id="alertsTable">
 <thead>
-<tr>
-<th>Time</th><th>Agent</th><th>Type</th><th>Severity</th><th>Message</th>
-</tr>
+<tr><th>Time</th><th>Agent</th><th>Type</th><th>Severity</th><th>Message</th></tr>
 </thead>
 <tbody></tbody>
 </table>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
 <script>
 let agentsData = [];
 let telemetryData = [];
@@ -135,10 +130,8 @@ const types = [...new Set(telemetryData.map(t => t.eventType).filter(Boolean))].
 const currentAgent = agentFilter.value;
 const currentType = typeFilter.value;
 
-agentFilter.innerHTML = '<option value="">All agents</option>' +
-agents.map(a => `<option value="${a}">${a}</option>`).join('');
-typeFilter.innerHTML = '<option value="">All types</option>' +
-types.map(t => `<option value="${t}">${t}</option>`).join('');
+agentFilter.innerHTML = '<option value="">All agents</option>' + agents.map(a => `<option value="${a}">${a}</option>`).join('');
+typeFilter.innerHTML = '<option value="">All types</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
 
 agentFilter.value = agents.includes(currentAgent) ? currentAgent : "";
 typeFilter.value = types.includes(currentType) ? currentType : "";
@@ -257,8 +250,30 @@ status.innerHTML = `<span class="warn">${e.message}</span>`;
 }
 }
 
+async function startRealtime() {
+const connection = new signalR.HubConnectionBuilder()
+.withUrl("/hubs/telemetry")
+.withAutomaticReconnect()
+.build();
+
+connection.on("telemetry_received", (payload) => {
+console.log("Realtime telemetry:", payload);
 loadAll();
-setInterval(loadAll, 1000);
+});
+
+try {
+await connection.start();
+console.log("SignalR connected");
+} catch (err) {
+console.error("SignalR connection failed:", err);
+setTimeout(startRealtime, 3000);
+}
+}
+
+loadAll();
+startRealtime();
+// Optional fallback polling:
+// setInterval(loadAll, 10000);
 </script>
 </body>
 </html>

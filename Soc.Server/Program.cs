@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Soc.Server.Data;
+using Soc.Server.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddDbContext<SocDbContext>(opt =>
 opt.UseSqlite("Data Source=soc.db"));
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -36,5 +38,6 @@ app.UseStaticFiles();
 
 app.MapGet("/health", () => "ok");
 app.MapControllers();
+app.MapHub<TelemetryHub>("/hubs/telemetry");
 
 app.Run();
