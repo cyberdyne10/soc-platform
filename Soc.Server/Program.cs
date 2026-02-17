@@ -3,14 +3,12 @@ using Soc.Server.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Services
 builder.Services.AddControllers();
 builder.Services.AddDbContext<SocDbContext>(opt =>
 opt.UseSqlite("Data Source=soc.db"));
 
 var app = builder.Build();
 
-// Create DB if missing
 using (var scope = app.Services.CreateScope())
 {
 var db = scope.ServiceProvider.GetRequiredService<SocDbContext>();
@@ -33,5 +31,10 @@ return;
 await next();
 });
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+app.MapGet("/health", () => "ok");
 app.MapControllers();
+
 app.Run();
