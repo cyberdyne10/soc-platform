@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Soc.Agent/Soc.Agent.csproj" />
+  <Project Path="Soc.Server/Soc.Server.csproj" />
+</Solution>
